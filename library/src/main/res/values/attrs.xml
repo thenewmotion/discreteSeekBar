@@ -34,5 +34,9 @@
         <attr name="dsb_indicatorFormatter" format="string|reference"/>
         <attr name="dsb_rippleColor" format="color|reference"/>
         <attr name="dsb_indicatorPopupEnabled" format="boolean"/>
+        <attr name="dsb_gravity">
+            <enum name="start" value="0" />
+            <enum name="end" value="1" />
+        </attr>
     </declare-styleable>
 </resources>

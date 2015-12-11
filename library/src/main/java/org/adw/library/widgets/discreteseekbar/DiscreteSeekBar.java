@@ -130,6 +130,10 @@ public class DiscreteSeekBar extends View {
     private static final int PROGRESS_ANIMATION_DURATION = 250;
     private static final int INDICATOR_DELAY_FOR_TAPS = 150;
     private static final int DEFAULT_THUMB_COLOR = 0xff009688;
+
+    private static final int SCRUBBER_GRAVITY_START = 0;
+    private static final int SCRUBBER_GRAVITY_END = 1;
+
     private ThumbDrawable mThumb;
     private TrackRectDrawable mTrack;
     private TrackRectDrawable mScrubber;
@@ -163,6 +167,8 @@ public class DiscreteSeekBar extends View {
     private int mAnimationTarget;
     private float mDownX;
     private float mTouchSlop;
+
+    private int mScrubberGravity;
 
     public DiscreteSeekBar(Context context) {
         this(context, null);
@@ -233,6 +239,9 @@ public class DiscreteSeekBar extends View {
         ColorStateList trackColor = a.getColorStateList(R.styleable.DiscreteSeekBar_dsb_trackColor);
         ColorStateList progressColor = a.getColorStateList(R.styleable.DiscreteSeekBar_dsb_progressColor);
         ColorStateList rippleColor = a.getColorStateList(R.styleable.DiscreteSeekBar_dsb_rippleColor);
+
+        mScrubberGravity = a.getInt(R.styleable.DiscreteSeekBar_dsb_gravity, SCRUBBER_GRAVITY_START);
+
         boolean editMode = isInEditMode();
         if (editMode || rippleColor == null) {
             rippleColor = new ColorStateList(new int[][]{new int[]{}}, new int[]{Color.DKGRAY});
@@ -872,25 +881,52 @@ public class DiscreteSeekBar extends View {
         updateThumbPos(thumbPos);
     }
 
-    private void updateThumbPos(int posX) {
-        int thumbWidth = mThumb.getIntrinsicWidth();
-        int halfThumb = thumbWidth / 2;
-        int start;
+    private void updateThumbPos(final int positionX) {
+        final int thumbWidth = mThumb.getIntrinsicWidth();
+        final int halfThumb = thumbWidth / 2;
+        final int start;
+        final int end;
+        final int posX;
+
+        final int left = getPaddingLeft() + mAddedTouchBounds;
+        final int right = getWidth() - getPaddingRight() - mAddedTouchBounds;
+
         if (isRtl()) {
-            start = getWidth() - getPaddingRight() - mAddedTouchBounds;
-            posX = start - posX - thumbWidth;
+            start = right;
+            end = left;
+            posX = start - positionX - thumbWidth;
         } else {
-            start = getPaddingLeft() + mAddedTouchBounds;
-            posX = start + posX;
+            start = left;
+            end = right;
+            posX = start + positionX;
         }
+
         mThumb.copyBounds(mInvalidateRect);
         mThumb.setBounds(posX, mInvalidateRect.top, posX + thumbWidth, mInvalidateRect.bottom);
         if (isRtl()) {
-            mScrubber.getBounds().right = start - halfThumb;
-            mScrubber.getBounds().left = posX + halfThumb;
+            switch (mScrubberGravity) {
+                case SCRUBBER_GRAVITY_START:
+                    mScrubber.getBounds().right = start - halfThumb;
+                    mScrubber.getBounds().left = posX + halfThumb;
+                    break;
+                case SCRUBBER_GRAVITY_END:
+                    mScrubber.getBounds().right = posX + halfThumb;
+                    mScrubber.getBounds().left = end + halfThumb;
+                    break;
+            }
+
         } else {
-            mScrubber.getBounds().left = start + halfThumb;
-            mScrubber.getBounds().right = posX + halfThumb;
+            switch (mScrubberGravity) {
+                case SCRUBBER_GRAVITY_START:
+                    mScrubber.getBounds().left = start + halfThumb;
+                    mScrubber.getBounds().right = posX + halfThumb;
+                    break;
+                case SCRUBBER_GRAVITY_END:
+                    mScrubber.getBounds().left = posX + halfThumb;
+                    mScrubber.getBounds().right = end - halfThumb;
+                    break;
+            }
+
         }
         final Rect finalBounds = mTempRect;
         mThumb.copyBounds(finalBounds);
@@ -904,7 +940,6 @@ public class DiscreteSeekBar extends View {
         SeekBarCompat.setHotspotBounds(mRipple, finalBounds.left, finalBounds.top, finalBounds.right, finalBounds.bottom);
         invalidate(mInvalidateRect);
     }
-
 
     private void setHotspot(float x, float y) {
         DrawableCompat.setHotspot(mRipple, x, y);

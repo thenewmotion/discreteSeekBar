@@ -55,7 +55,8 @@
                 android:layout_height="wrap_content"
                 app:dsb_min="1"
                 app:dsb_max="1000"
-                app:dsb_indicatorFormatter="%04d"/>
+                app:dsb_indicatorFormatter="%04d"
+                app:dsb_gravity="end"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
