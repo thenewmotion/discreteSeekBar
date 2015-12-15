@@ -15,23 +15,21 @@
  */
 
 apply plugin: 'com.android.library'
-apply plugin: 'bintray-release' // must be applied after your artifact generating plugin (eg. java / com.android.library)
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 
 buildscript {
     repositories {
         jcenter()
-    }
-    dependencies {
-        classpath 'com.novoda:bintray-release:0.3.4'
     }
 }
 
 /**
  * Properties for versioning
  */
-def libVersionCode = 1
-def libVersion = '1.0.0'
-
+def packageName = 'org.adw.library.widgets.discreteseekbar'
+def libVersionCode = 4
+def libVersionName = "1.0.3"
 
 android {
     compileSdkVersion 22
@@ -41,37 +39,46 @@ android {
         minSdkVersion 4
         targetSdkVersion 22
         versionCode libVersionCode
-        versionName libVersion
+        versionName libVersionName
     }
-}
-
-publish {
-    /**
-     * Properties for BinTray upload
-     */
-    Properties properties = new Properties()
-    File bintrayPropertiesFile = project.file('bintray.properties');
-    if (bintrayPropertiesFile.exists()) {
-        properties.load(bintrayPropertiesFile.newDataInputStream())
-    }
-    def btrayUser = properties.getProperty("bintray.user", "")
-    def btrayKey = properties.getProperty("bintray.apikey", "")
-
-    bintrayUser = btrayUser
-    bintrayKey = btrayKey
-    userOrg = btrayUser
-    groupId = 'org.adw.library'
-    artifactId = 'discrete-seekbar'
-    licences = "['Apache-2.0']"
-    publishVersion = libVersion
-    description = 'DiscreteSeekbar is my poor attempt to develop an android implementation of the Discrete Slider component from the Google Material Design Guidelines'
-    website = 'https://github.com/AnderWeb/discreteSeekBar'
-    issueTracker = 'https://github.com/AnderWeb/discreteSeekBar/issues'
-    repository = 'https://github.com/AnderWeb/discreteSeekBar.git'
-    autoPublish = false
-    dryRun = false
 }
 
 dependencies {
     compile 'com.android.support:support-v4:22.1.1'
+}
+
+publishing {
+    publications {
+        aar(MavenPublication) {
+            groupId packageName
+            version = libVersionName
+            artifactId project.getName()
+
+            // Tell maven to prepare the generated "*.aar" file for publishing
+            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+        }
+    }
+}
+
+artifactory {
+    contextUrl = 'http://localhost:8081/artifactory'
+    publish {
+        repository {
+            // The Artifactory repository key to publish to
+            repoKey = 'libs-release-local'
+
+            username = "admin"
+            password = "password"
+        }
+        defaults {
+            // Tell the Artifactory Plugin which artifacts should be published to Artifactory.
+            publications('aar')
+            publishArtifacts = true
+
+            // Properties to be attached to the published artifacts.
+            properties = ['qa.level': 'basic', 'dev.team': 'core']
+            // Publish generated POM files to Artifactory (true by default)
+            publishPom = true
+        }
+    }
 }
