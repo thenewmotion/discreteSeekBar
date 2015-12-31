@@ -4,8 +4,8 @@ apply plugin: 'com.jfrog.artifactory'
 publishing {
     publications {
         aar(MavenPublication) {
-            groupId artGroup
-            version = artVersion
+            groupId GROUP
+            version = VERSION_NAME
             artifactId project.getName()
 
             // Tell maven to prepare the generated "*.aar" file for publishing

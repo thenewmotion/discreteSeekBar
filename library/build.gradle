@@ -29,8 +29,8 @@ android {
     defaultConfig {
         minSdkVersion 4
         targetSdkVersion 22
-        versionCode 6
-        versionName artVersion
+        versionCode 7
+        versionName VERSION_NAME
     }
 }
 
